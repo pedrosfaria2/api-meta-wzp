@@ -10,9 +10,8 @@ export class WebhookService {
 
     private async getNgrokUrl(): Promise<string> {
         try {
-            const response = await axios.get(
-                'http://127.0.0.1:4040/api/tunnels'
-            );
+            const ngrokApiUrl = this.configService.get<string>('NGROK_API_URL');
+            const response = await axios.get(ngrokApiUrl);
             const data = response.data as { tunnels: { public_url: string }[] };
             return data.tunnels[0].public_url;
         } catch (error) {
@@ -29,14 +28,17 @@ export class WebhookService {
             const appSecret = this.configService.get<string>('APP_SECRET');
             const verifyToken = this.configService.get<string>('VERIFY_TOKEN');
             const accessToken = `${appId}|${appSecret}`;
+            const facebookApiUrl =
+                this.configService.get<string>('FACEBOOK_API_URL');
 
             this.logger.log(`Configurando o Webhook:
                 APP_ID: ${appId}, 
                 ACCESS_TOKEN: ${accessToken}, 
                 VERIFY_TOKEN: ${verifyToken}, 
                 CALLBACK_URL: ${callbackUrl}`);
+
             const response = await axios.post(
-                `https://graph.facebook.com/v21.0/${appId}/subscriptions?access_token=${accessToken}`,
+                `${facebookApiUrl}/${appId}/subscriptions?access_token=${accessToken}`,
                 {
                     object: 'page',
                     callback_url: callbackUrl,
